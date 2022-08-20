@@ -33,9 +33,9 @@ func cmdRun(cmd *cli.Cmd) {
 		target      = cmd.StringsOpt("t target", make([]string, 0), "Target url(s)")
 		targetFiles = cmd.StringsOpt("T targetfile", make([]string, 0), "Target url file(s)")
 		poc         = cmd.StringsOpt("p poc", make([]string, 0), "Poc file(s)")
-		pocPath     = cmd.StringsOpt("P pocpath", make([]string, 0), "Load poc from Path, support Glob grammer")
+		pocPath     = cmd.StringsOpt("P pocpath", []string{"./pocs"}, "Load poc from Path")
 		apiKey      = cmd.StringOpt("k key", "", "ceye.io api key")
-		domain      = cmd.StringOpt("d domain", "", "ceye.io subdomain")
+		domain      = cmd.StringOpt("d domain", "api.ceye.io", "ceye.io subdomain")
 		tags        = cmd.StringsOpt("tag", make([]string, 0), "filter poc by tag")
 		file        = cmd.StringOpt("file", "", "Result file to write")
 		json        = cmd.BoolOpt("json", false, "Whether output is in JSON format or not, more information will be output")
@@ -47,7 +47,7 @@ func cmdRun(cmd *cli.Cmd) {
 		verbose     = cmd.BoolOpt("v verbose", false, "Print verbose messages")
 	)
 	// 定义用法
-	cmd.Spec = "(-t=<target> | -T=<targetFile>)... (-p=<poc> | -P=<pocpath>)... [--tag=<poc.tag>]... [--file=<file> [--json]] [--proxy=<proxy>] [--threads=<threads>] [--timeout=<timeout>] [-k=<ceye.api.key> | --key=<ceye.api.key>]  [-d=<ceye.subdomain> | --domain=<ceye.subdomain>] [--debug] [-v | --verbose]"
+	cmd.Spec = "(-t=<target> | -T=<targetFile>)... [-p=<poc> | -P=<pocpath>]... [--tag=<poc.tag>]... [--file=<file> [--json]] [--proxy=<proxy>] [--threads=<threads>] [--timeout=<timeout>] [-k=<ceye.api.key> | --key=<ceye.api.key>]  [-d=<ceye.subdomain> | --domain=<ceye.subdomain>] [--debug] [-v | --verbose]"
 
 	cmd.Action = func() {
 		// 设置变量
@@ -66,7 +66,11 @@ func cmdRun(cmd *cli.Cmd) {
 		}
 
 		// 初始化http客户端
-		xray_requests.InitHttpClient(*threads, *proxy, timeoutSecond)
+		err := xray_requests.InitHttpClient(*threads, *proxy, timeoutSecond)
+		if err != nil {
+			utils.Error("Http Client init error: [%s]", err)
+			return
+		}
 
 		// 初始化nuclei options
 		nuclei_parse.InitExecuterOptions(*rate, *timeout)
@@ -131,5 +135,9 @@ func main() {
 	app.Version("V version", "pocV "+__version__)
 	app.Spec = "[-V]"
 
-	app.Run(os.Args)
+	err := app.Run(os.Args)
+	if err != nil {
+		utils.Error("Run error: [%s]", err)
+		return
+	}
 }

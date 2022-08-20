@@ -12,7 +12,7 @@ import (
 func cmdTag(cmd *cli.Cmd) {
 	var (
 		poc     = cmd.StringsOpt("p poc", make([]string, 0), "Poc file(s)")
-		pocPath = cmd.StringsOpt("P pocpath", make([]string, 0), "Load poc from Path")
+		pocPath = cmd.StringsOpt("P pocpath", []string{"./pocs"}, "Load poc from Path")
 		tags    = cmd.StringsArg("TAG", make([]string, 0), "poc tag")
 		remove  = cmd.BoolOpt("r rm", false, "Remove tag(s) instead of add")
 		debug   = cmd.BoolOpt("debug", false, "debug this program")

@@ -21,3 +21,6 @@
 
 # publish
 publish.py
+# results
+*.json
+.idea

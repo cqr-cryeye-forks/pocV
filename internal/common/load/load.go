@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"os"
 	"path/filepath"
 	"strings"
 
@@ -37,6 +38,21 @@ func LoadTargets(target *[]string, targetFiles *[]string) []string {
 
 	return targetsSlice
 }
+func glob(dir string, ext []string) ([]string, error) {
+
+	var files []string
+	err := filepath.Walk(dir, func(path string, f os.FileInfo, err error) error {
+		for _, extension := range ext {
+			if filepath.Ext(path) == extension {
+				files = append(files, path)
+			}
+			return nil
+		}
+		return nil
+	})
+
+	return files, err
+}
 
 // 读取pocs
 func LoadPocs(pocs *[]string, pocPaths *[]string) (map[string]xray_structs.Poc, map[string]nuclei_structs.Poc) {
@@ -65,7 +81,7 @@ func LoadPocs(pocs *[]string, pocPaths *[]string) (map[string]xray_structs.Poc, 
 			}
 
 			if err != nil {
-				utils.WarningF("Poc[%s] Parse error", pocFile)
+				utils.WarningF("Poc[%s] Parse error: [%s]", pocFile, err)
 			}
 
 		} else {
@@ -79,7 +95,9 @@ func LoadPocs(pocs *[]string, pocPaths *[]string) (map[string]xray_structs.Poc, 
 	for _, pocPath := range *pocPaths {
 		utils.DebugF("Load from poc path: %v", pocPath)
 
-		pocFiles, err := filepath.Glob(pocPath)
+		extensions := []string{".yml", ".yaml"}
+		pocFiles, err := glob(pocPath, extensions)
+
 		if err != nil {
 			utils.CliError("Path glob match error: "+err.Error(), 6)
 		}
